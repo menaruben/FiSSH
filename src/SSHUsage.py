@@ -1,31 +1,34 @@
 import paramiko
-from subprocess import run
+from subprocess import call
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 
-class Host():
-    def __init__(self, IP: str, Username: str, Password: str):
-        self.IP = IP
-        self.Username = Username
-        self.Password = Password
+class Host:
+    def __init__(self, ip: str, username: str, password: str):
+        self.IP = ip
+        self.Username = username
+        self.Password = password
 
-    def ExecCommand(self, Command: str):
-        if Command != '':
+    def exec_command(self, command: str):
+        if command != '':
             client.connect(hostname=self.IP, username=self.Username, password=self.Password)
             stdin, stdout, stderr = client.exec_command('bash')
-            stdin, stdout, stderr = client.exec_command(Command)
-            
-            return stdout.read().decode()
+            stdin, stdout, stderr = client.exec_command(command)
+
+            if stderr != '':
+                print(stderr)
+
+            print(stdout)
+
             client.close()
-        
+            return stdout.read().decode()
+
         else:
             # ! sshpass needs to be installed on the system! 
             # brew install hudochenkov/sshpass/sshpass
+            # pacman -S sshpass
 
             ssh_command = f'sshpass -p {self.Password} ssh {self.Username}@{self.IP}'
-            run(['open', '-a', 'Terminal', '-W', ssh_command])
-
-    def SaveHost(self):
-        pass
+            call(['konsole', '--hold', '-e', 'bash -c "{}; exec bash"'.format(ssh_command)])

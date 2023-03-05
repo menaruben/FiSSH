@@ -1,21 +1,11 @@
 from PyQt5.QtWidgets import *
 import SSHUsage
 
-class OutputWindow(QWidget):
-    def __init__(self, output):
-        super().__init__()
-        self.setWindowTitle('Output Window')
-        self.setGeometry(100, 100, 500, 500)
-        layout = QVBoxLayout()
-        label = QLabel(output)
-        layout.addWidget(label)
-        self.setLayout(layout)
-        self.show()
 
 def main():
     app = QApplication([])
     window = QWidget()
-    window.setGeometry(100, 100, 500, 500)    
+    window.setGeometry(100, 100, 500, 500)
     window.setWindowTitle('FiSSH - SSH Client')
 
     # Create two input boxes
@@ -27,7 +17,7 @@ def main():
 
     # Add the input boxes to a layout
     layout = QVBoxLayout()
-    
+
     layout.addWidget(QLabel('IP Address:'))
     layout.addWidget(input_box_1)
 
@@ -35,35 +25,36 @@ def main():
     layout.addWidget(input_box_2)
 
     layout.addWidget(QLabel('Password:'))
-    layout.addWidget(input_box_3) 
+    layout.addWidget(input_box_3)
 
     layout.addWidget(QLabel('Command to execute:'))
-    layout.addWidget(input_box_4)    
+    layout.addWidget(input_box_4)
 
     # Set the layout for the window
     window.setLayout(layout)
 
     # Define a function to retrieve the contents of the input boxes
-    def Connect():
+    def ConnectSSH():
         ip = input_box_1.text()
         username = input_box_2.text()
         passwd = input_box_3.text()
         command = input_box_4.text()
         # print(f'Input: {input_1}, {input_2}, {input_2}')
 
-        Host = SSHUsage.Host(ip, username, passwd)
-        stdout = Host.ExecCommand(command)
+        host = SSHUsage.Host(ip, username, passwd)
+        stdout = host.exec_command(command)
         print(stdout)
         # return stdout
         # OutputWindow(stdout)
 
     # Add a button to retrieve the contents of the input boxes
-    ConnectButton = QPushButton('Connect!')
-    ConnectButton.clicked.connect(Connect)
-    layout.addWidget(ConnectButton)
+    connectButton = QPushButton('Connect!')
+    connectButton.clicked.connect(ConnectSSH)
+    layout.addWidget(connectButton)
 
     window.show()
     app.exec_()
+
 
 if __name__ == '__main__':
     main()
