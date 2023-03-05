@@ -1,5 +1,7 @@
 import paramiko
-from subprocess import call
+from subprocess import run, Popen, PIPE, call
+import sys
+from sys import platform
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -11,24 +13,33 @@ class Host:
         self.Username = username
         self.Password = password
 
-    def exec_command(self, command: str):
+    def ExecCommand(self, command: str):
         if command != '':
             client.connect(hostname=self.IP, username=self.Username, password=self.Password)
-            stdin, stdout, stderr = client.exec_command('bash')
-            stdin, stdout, stderr = client.exec_command(command)
+            # _, stdout, stderr = client.exec_command('bash')
+            _, stdout, stderr = client.exec_command(command)
 
             if stderr != '':
-                print(stderr)
-
-            print(stdout)
-
-            client.close()
-            return stdout.read().decode()
+                return stderr.read().decode()
+            else:
+                return stdout.read().decode()
 
         else:
-            # ! sshpass needs to be installed on the system! 
+            # ! sshpass needs to be installed on the system!
             # brew install hudochenkov/sshpass/sshpass
             # pacman -S sshpass
+            ssh_command = f'ssh {self.Username}@{self.IP}\n'
+            call(ssh_command, shell=True)
 
-            ssh_command = f'sshpass -p {self.Password} ssh {self.Username}@{self.IP}'
-            call(['konsole', '--hold', '-e', 'bash -c "{}; exec bash"'.format(ssh_command)])
+
+            # if sys.platform == "win32":
+            #     ssh_command = f'ssh {self.Username}@{self.IP}\n'
+            #     proc = Popen('cmd.exe', stdin=PIPE, stdout=PIPE)
+
+            #     proc.stdin.write(bytes(ssh_command, 'utf-8'))
+            #     # proc.stdin.write(bytes('yes\n', 'utf-8'))
+            #     proc.stdin.write(bytes(f'{self.Password}\n', 'utf-8'))
+
+            # else:
+            #     ssh_command = f'sshpass -p {self.Password} ssh {self.Username}@{self.IP}'
+            #     run(['konsole', '--hold', '-e', 'bash -c f"{ssh_command}; exec bash"'])

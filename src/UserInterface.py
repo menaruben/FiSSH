@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import *
 import SSHUsage
 
-
 def main():
     app = QApplication([])
     window = QWidget()
@@ -39,11 +38,11 @@ def main():
         username = input_box_2.text()
         passwd = input_box_3.text()
         command = input_box_4.text()
-        # print(f'Input: {input_1}, {input_2}, {input_2}')
 
         host = SSHUsage.Host(ip, username, passwd)
-        stdout = host.exec_command(command)
-        print(stdout)
+        output = host.ExecCommand(command)
+
+        print(output)
         # return stdout
         # OutputWindow(stdout)
 
@@ -58,3 +57,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
