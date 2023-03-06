@@ -1,36 +1,66 @@
 import paramiko
 from subprocess import run, Popen, PIPE, call
-import sys
 from sys import platform
+from time import sleep
 
-client = paramiko.SSHClient()
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 
 class Host:
-    def __init__(self, ip: str, username: str, password: str):
+    def __init__(self, ip: str, username: str, password: str, port: int = 22):
         self.IP = ip
         self.Username = username
         self.Password = password
+        self.Port = port
+        self.PROMPT = ">"
 
-    def ExecCommand(self, command: str):
-        if command != '':
-            client.connect(hostname=self.IP, username=self.Username, password=self.Password)
-            # _, stdout, stderr = client.exec_command('bash')
-            _, stdout, stderr = client.exec_command(command)
+    def ExecCommand(self, command: str) -> str:
+        try:
+            if command != '':
+                try:
+                    ssh.connect(hostname=self.IP, username=self.Username, password=self.Password, port=self.Port)
+                    channel = ssh.invoke_shell()
+                    channel.send(command + "\n")
+                    sleep(1)
+                    output = channel.recv(65535).decode("utf-8")
 
-            if stderr != '':
-                return stderr.read().decode()
+                except Exception as e:
+                    return f"ERROR: {str(e)}"
+
+
+                if ssh.get_transport().is_active():
+                    print("SSH connection established successfully!")
+
+                    ssh.close()
+                    return str(output)
+                    # return str(stdout.read().decode('utf-8')), str(stderr.read().decode('utf-8'))
+
+                else:
+                    print("Error establishing SSH connection.")
+
+                    ssh.close()
+                    return str(output)
+                    # return str(stderr.read().decode('utf-8'))
+
+
+                # if stderr != '':
+                #     client.close()
+                #     return str(stderr.read().decode())
+                # else:
+                #     client.close()
+                #     return str(stdout.read().decode())
+
+            # if no command is given then a terminal should pop up, opening the ssh connection
             else:
-                return stdout.read().decode()
+                # ! sshpass needs to be installed on the system!
+                # brew install hudochenkov/sshpass/sshpass
+                # pacman -S sshpass
+                ssh_command = f'ssh {self.Username}@{self.IP}\n'
+                call(ssh_command, shell=True)
 
-        else:
-            # ! sshpass needs to be installed on the system!
-            # brew install hudochenkov/sshpass/sshpass
-            # pacman -S sshpass
-            ssh_command = f'ssh {self.Username}@{self.IP}\n'
-            call(ssh_command, shell=True)
-
+        except Exception as e:
+            return f"ERROR: {str(e)}"
 
             # if sys.platform == "win32":
             #     ssh_command = f'ssh {self.Username}@{self.IP}\n'
