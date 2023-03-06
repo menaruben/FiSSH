@@ -1,7 +1,8 @@
 import paramiko
-from subprocess import run, Popen, PIPE, call
-from sys import platform
+from subprocess import call
+from platform import system
 from time import sleep
+import SSHTerminal
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -33,6 +34,12 @@ class Host:
                     print("SSH connection established successfully!")
 
                     ssh.close()
+
+                    # it is recommended (if it is a unix host) to remove the execute flag
+                    # on the /etc/update-motd.d/* to remove the welcome message when login
+                    # in with ssh (for a clean output message). this command takes care of it: 
+                    # sudo chmod -x /etc/update-motd.d/*
+
                     return str(output)
                     # return str(stdout.read().decode('utf-8')), str(stderr.read().decode('utf-8'))
 
@@ -41,35 +48,8 @@ class Host:
 
                     ssh.close()
                     return str(output)
-                    # return str(stderr.read().decode('utf-8'))
-
-
-                # if stderr != '':
-                #     client.close()
-                #     return str(stderr.read().decode())
-                # else:
-                #     client.close()
-                #     return str(stdout.read().decode())
 
             # if no command is given then a terminal should pop up, opening the ssh connection
-            else:
-                # ! sshpass needs to be installed on the system!
-                # brew install hudochenkov/sshpass/sshpass
-                # pacman -S sshpass
-                ssh_command = f'ssh {self.Username}@{self.IP}\n'
-                call(ssh_command, shell=True)
 
         except Exception as e:
             return f"ERROR: {str(e)}"
-
-            # if sys.platform == "win32":
-            #     ssh_command = f'ssh {self.Username}@{self.IP}\n'
-            #     proc = Popen('cmd.exe', stdin=PIPE, stdout=PIPE)
-
-            #     proc.stdin.write(bytes(ssh_command, 'utf-8'))
-            #     # proc.stdin.write(bytes('yes\n', 'utf-8'))
-            #     proc.stdin.write(bytes(f'{self.Password}\n', 'utf-8'))
-
-            # else:
-            #     ssh_command = f'sshpass -p {self.Password} ssh {self.Username}@{self.IP}'
-            #     run(['konsole', '--hold', '-e', 'bash -c f"{ssh_command}; exec bash"'])

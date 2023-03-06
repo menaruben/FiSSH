@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import *
 import SSHUsage
 import qdarkstyle
+from SSHTerminal import *
+from sys import exit, argv
 
 class Boxes:
     def __init__(self):
@@ -47,7 +49,11 @@ class SSHWindow(QWidget):
 
         # Add a button to retrieve the contents of the input boxes
         self.connectButton = QPushButton('Connect!')
-        self.connectButton.clicked.connect(SSHWindow.ConnectSSH)
+        if self.input_box_4.text() != "":
+            self.connectButton.clicked.connect(SSHWindow.ConnectSSH)
+        else:
+            self.connectButton.clicked.connect(SSHWindow.OpenSSHTerminal)
+
         self.layout.addWidget(self.connectButton)
 
         # Set the layout for the window
@@ -64,9 +70,9 @@ class SSHWindow(QWidget):
         port = int(window.input_box_5.text())
 
         host = SSHUsage.Host(ip, username, passwd, port)
-        output = host.ExecCommand(command)
 
         # Create a message box to display the output
+        output = host.ExecCommand(command)
         Boxes.MessageBox(str(output), "Output")
 
         # print output to terminal
@@ -75,34 +81,26 @@ class SSHWindow(QWidget):
         # return output
         # OutputWindow(stdout)
 
-class StartupWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+    @staticmethod
+    def OpenSSHTerminal():
+        window = QApplication.activeWindow()
+        ip = window.input_box_1.text()
+        username = window.input_box_2.text()
+        passwd = window.input_box_3.text()
+        command = window.input_box_4.text()
+        port = int(window.input_box_5.text())
 
-        self.setGeometry(100, 100, 300, 300)
-        self.setWindowTitle('Startup Window')
+        terminal = Terminal(ip, port, username, passwd)
+        terminal.show()
 
-        # Create a layout for the window
-        self.layout = QVBoxLayout()
-
-        # Buttons to open new windows..
-        self.sshButton = QPushButton('Connect to Host')
-        self.sshButton.clicked.connect(self.OpenSSHWindow)
-        self.layout.addWidget(self.sshButton)
-
-        # Set the layout for the window
-        self.setLayout(self.layout)
-
-    def OpenSSHWindow(self):
-        self.sshWindow = SSHWindow()
-        self.sshWindow.show()
-
-if __name__ == '__main__':
+def main():
     app = QApplication([])
     app.setStyleSheet(qdarkstyle.load_stylesheet())
 
-    startupWindow = StartupWindow()
-    startupWindow.show()
+    window = SSHWindow()
+    window.show()
     app.exec_()
 
 
+if __name__ == '__main__':
+    main()
