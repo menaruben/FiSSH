@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import *
 import SSHUsage
 import qdarkstyle
-from SSHTerminal import *
-from sys import exit, argv
+# import SSHTerminal
+from sys import exit, argv, platform
+from subprocess import call
 
 class Boxes:
     def __init__(self):
@@ -13,6 +14,63 @@ class Boxes:
         msgBox.setText(message)
         msgBox.setWindowTitle(windowtitle)
         msgBox.exec_()
+
+class Terminal(QMainWindow):
+    def __init__(self, ip: str, port: int, username: str, password: str):
+        super().__init__()
+        self.IP = ip
+        self.Port = port
+        self.Username = username
+        self.Password = password
+        self.SSHhost = SSHUsage.Host(self.IP, self.Username, self.Password, self.Port)
+
+        self.setWindowTitle("FiSSH - Slow SSHTerminal")
+        self.setGeometry(100, 100, 800, 600)
+
+        # Create the text area to display the terminal output
+        self.textarea = QTextEdit()
+        self.textarea.setReadOnly(True)
+
+        # Create the input field for the user to type in commands
+        self.inputfield = QLineEdit()
+        self.inputfield.returnPressed.connect(self.execute_command)
+
+        # Add the text area and input field to a vertical box layout
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.textarea)
+        vbox.addWidget(self.inputfield)
+
+        # Create a central widget and set the layout to the vertical box layout
+        central_widget = QWidget()
+        central_widget.setLayout(vbox)
+        self.setCentralWidget(central_widget)
+
+    def execute_command(self):
+        # Get the user's input from the input field
+        user_input = self.inputfield.text()
+
+        # Echo the input to the terminal output
+        stdout = self.SSHhost.ExecCommand(user_input)
+        self.textarea.append(stdout)
+
+        # Clear the input field
+        self.inputfield.clear()
+
+    @staticmethod
+    def OpenSSHTerminal():
+        window = QApplication.activeWindow()
+        ip = window.input_box_1.text()
+        username = window.input_box_2.text()
+        passwd = window.input_box_3.text()
+        port = int(window.input_box_5.text())
+
+        if platform == "win32":
+            terminal = Terminal(ip, port, username, passwd)
+            terminal.show()
+
+        # elif platform == "linux2":
+        #     host = SSHUsage.Host(ip, username, passwd, port)
+        #     host.openTerminal()
 
 class SSHWindow(QWidget):
     def __init__(self):
@@ -52,7 +110,7 @@ class SSHWindow(QWidget):
         if self.input_box_4.text() != "":
             self.connectButton.clicked.connect(SSHWindow.ConnectSSH)
         else:
-            self.connectButton.clicked.connect(SSHWindow.OpenSSHTerminal)
+            self.connectButton.clicked.connect(Terminal.OpenSSHTerminal)
 
         self.layout.addWidget(self.connectButton)
 
@@ -80,18 +138,6 @@ class SSHWindow(QWidget):
 
         # return output
         # OutputWindow(stdout)
-
-    @staticmethod
-    def OpenSSHTerminal():
-        window = QApplication.activeWindow()
-        ip = window.input_box_1.text()
-        username = window.input_box_2.text()
-        passwd = window.input_box_3.text()
-        command = window.input_box_4.text()
-        port = int(window.input_box_5.text())
-
-        terminal = Terminal(ip, port, username, passwd)
-        terminal.show()
 
 def main():
     app = QApplication([])

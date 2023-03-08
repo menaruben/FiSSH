@@ -1,4 +1,3 @@
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QLineEdit
 import SSHUsage
 
@@ -11,7 +10,7 @@ class Terminal(QMainWindow):
         self.Password = password
         self.SSHhost = SSHUsage.Host(self.IP, self.Username, self.Password, self.Port)
 
-        self.setWindowTitle("Simple Terminal")
+        self.setWindowTitle("FiSSH - Slow SSHTerminal")
         self.setGeometry(100, 100, 800, 600)
 
         # Create the text area to display the terminal output
